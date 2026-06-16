@@ -14,31 +14,15 @@ const TICKERS: Record<string, { name: string; sector: string }> = {
 };
 
 async function fetchQuote(ticker: string) {
-  // Stooq: free, no API key, works server-side
-  const url = `https://stooq.com/q/l/?s=${ticker.toLowerCase()}.us&f=sd2t2ohlcv&h&e=csv`;
-  const res = await fetch(url, { cache: "no-store", headers: { "User-Agent": "Mozilla/5.0" } });
-  if (!res.ok) throw new Error(`Stooq error ${res.status}`);
-  const text = await res.text();
-  const lines = text.trim().split("\n");
-  if (lines.length < 2) throw new Error("No data from Stooq");
-  const parts = lines[1].split(",");
-  // CSV: Symbol,Date,Time,Open,High,Low,Close,Volume
-  const close = parseFloat(parts[6]);
-  const open = parseFloat(parts[3]);
-  if (!close || close <= 0) throw new Error("Invalid price");
-  const change = close - open;
-  const changePercent = open > 0 ? (change / open) * 100 : 0;
-  return {
-    price: close,
-    change,
-    changePercent,
-    high52: 0,
-    low52: 0,
-    pe: null,
-    eps: null,
-    marketCap: null,
-    volumeRatio: 1,
-  };
+  const url = `https://api.twelvedata.com/quote?symbol=${ticker}&apikey=demo`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Twelve Data error ${res.status}`);
+  const d = await res.json();
+  if (d.status === "error" || !d.close) throw new Error(d.message ?? "No data");
+  const price = parseFloat(d.close);
+  const change = parseFloat(d.change ?? "0");
+  const changePercent = parseFloat(d.percent_change ?? "0");
+  return { price, change, changePercent };
 }
 
 export const dynamic = "force-dynamic";
@@ -87,7 +71,7 @@ export async function GET(req: NextRequest) {
       riesgo,
     };
 
-    cache.set(upper, { data: result, expires: Date.now() + 30 * 60 * 1000 });
+    cache.set(upper, { data: result, expires: Date.now() + 15 * 60 * 1000 });
     return NextResponse.json(result);
   } catch (err) {
     console.error("Score error:", err);
