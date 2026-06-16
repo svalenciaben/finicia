@@ -43,7 +43,8 @@ export async function GET(req: NextRequest) {
   const ticker = req.nextUrl.searchParams.get("ticker");
   if (!ticker) return NextResponse.json({ error: "ticker required" }, { status: 400 });
 
-  const cacheKey = ticker.toUpperCase();
+  const clientPrice = parseFloat(req.nextUrl.searchParams.get("price") ?? "0");
+  const cacheKey = ticker.toUpperCase() + (clientPrice > 0 ? "_real" : "");
   const cached = cache.get(cacheKey);
   if (cached && cached.expires > Date.now()) {
     return NextResponse.json(cached.data);
@@ -51,8 +52,6 @@ export async function GET(req: NextRequest) {
 
   const meta = TICKERS[cacheKey] ?? { name: cacheKey, sector: "General" };
 
-  // Accept price data passed from client to avoid server-side API restrictions
-  const clientPrice = parseFloat(req.nextUrl.searchParams.get("price") ?? "0");
   const clientChange = parseFloat(req.nextUrl.searchParams.get("change") ?? "0");
   const clientChangePct = parseFloat(req.nextUrl.searchParams.get("changePct") ?? "0");
 
@@ -128,7 +127,7 @@ Devuelve SOLO un JSON válido:
       tecnico: 5,
       fundamental: 5,
       sentimiento: 5,
-      resumen: "Agrega FINNHUB_API_KEY o FMP_API_KEY en Vercel para ver datos reales.",
+      resumen: "No se pudo generar el análisis en este momento.",
       riesgo: "medio",
     });
   }
