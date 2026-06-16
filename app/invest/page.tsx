@@ -48,33 +48,13 @@ export default function InvestPage() {
     try {
       const results = await Promise.all(
         TICKERS.slice(0, 6).map(async (t) => {
-          // Fetch price from Yahoo Finance (works from browser)
-          let price = 0, change = 0, changePercent = 0;
-          try {
-            const yhRes = await fetch(
-              `https://query1.finance.yahoo.com/v8/finance/chart/${t.ticker}?interval=1d&range=1d`
-            );
-            if (yhRes.ok) {
-              const yhData = await yhRes.json();
-              const meta = yhData?.chart?.result?.[0]?.meta;
-              if (meta) {
-                price = meta.regularMarketPrice ?? 0;
-                const prev = meta.chartPreviousClose ?? meta.previousClose ?? price;
-                change = price - prev;
-                changePercent = prev > 0 ? ((price - prev) / prev) * 100 : 0;
-              }
-            }
-          } catch {}
-
-          // Get AI score from our API (Claude analysis)
-          const res = await fetch(`/api/score?ticker=${t.ticker}&price=${price}&change=${change}&changePct=${changePercent}`);
+          const res = await fetch(`/api/score?ticker=${t.ticker}`);
           if (!res.ok) throw new Error();
-          const scoreData = await res.json() as StockScore;
-          return { ...scoreData, price, change, changePercent };
+          return await res.json() as StockScore;
         })
       );
       setScores(results);
-      setSelected(results[0] ?? null);
+      if (!selected) setSelected(results[0] ?? null);
     } catch {
       setScores(TICKERS.slice(0, 6).map((t) => ({
         ...t,
