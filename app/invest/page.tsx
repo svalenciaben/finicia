@@ -244,7 +244,7 @@ export default function InvestPage() {
 
             {/* Danelfin link */}
             <a
-              href={`https://danelfin.com/stock/${selected.ticker}/forecast`}
+              href={`https://danelfin.com/stock/${selected.ticker}`}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-ghost w-full justify-center mb-4"
