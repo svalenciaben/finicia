@@ -17,58 +17,24 @@ const TICKERS: Record<string, { name: string; sector: string }> = {
 };
 
 async function fetchQuote(ticker: string) {
-  // Finnhub — free tier, 60 calls/min, works from servers
-  const key = process.env.FINNHUB_API_KEY;
-  if (key) {
-    const res = await fetch(
-      `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${key}`,
-      { next: { revalidate: 900 } }
-    );
-    if (res.ok) {
-      const d = await res.json();
-      if (d.c && d.c > 0) {
-        return {
-          price: d.c,
-          change: d.d ?? 0,
-          changePercent: d.dp ?? 0,
-          high52: d.h ?? 0,
-          low52: d.l ?? 0,
-          pe: null,
-          eps: null,
-          marketCap: null,
-          volumeRatio: 1,
-        };
-      }
-    }
-  }
-
-  // FMP stable endpoint (new API, free tier 250 calls/day)
-  const fmpKey = process.env.FMP_API_KEY || "1IYFXrvJ16BB5Lsd0sQGwK3R1rBaGi5c";
-  if (fmpKey) {
-    const res = await fetch(
-      `https://financialmodelingprep.com/stable/quote?symbol=${ticker}&apikey=${fmpKey}`,
-      { next: { revalidate: 900 } }
-    );
-    if (res.ok) {
-      const d = await res.json();
-      const q = Array.isArray(d) ? d[0] : null;
-      if (q) {
-        return {
-          price: q.price ?? 0,
-          change: q.change ?? 0,
-          changePercent: q.changePercentage ?? 0,
-          high52: q.yearHigh ?? 0,
-          low52: q.yearLow ?? 0,
-          pe: q.pe ?? null,
-          eps: q.eps ?? null,
-          marketCap: q.marketCap ?? null,
-          volumeRatio: q.volume && q.priceAvg50 ? 1 : 1,
-        };
-      }
-    }
-  }
-
-  throw new Error("No data source available");
+  const fmpKey = "1IYFXrvJ16BB5Lsd0sQGwK3R1rBaGi5c";
+  const url = `https://financialmodelingprep.com/stable/quote?symbol=${ticker}&apikey=${fmpKey}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`FMP error ${res.status}: ${await res.text()}`);
+  const d = await res.json();
+  const q = Array.isArray(d) ? d[0] : d;
+  if (!q || !q.price) throw new Error(`No price data for ${ticker}`);
+  return {
+    price: q.price ?? 0,
+    change: q.change ?? 0,
+    changePercent: q.changePercentage ?? 0,
+    high52: q.yearHigh ?? 0,
+    low52: q.yearLow ?? 0,
+    pe: q.pe ?? null,
+    eps: q.eps ?? null,
+    marketCap: q.marketCap ?? null,
+    volumeRatio: 1,
+  };
 }
 
 export async function GET(req: NextRequest) {
