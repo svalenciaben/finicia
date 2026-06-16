@@ -9,9 +9,15 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.2",
+    "@supabase/supabase-js": "^2.108.2",
+    "framer-motion": "^12.40.0",
+    "lightweight-charts": "^5.2.0",
+    "lucide-react": "^1.20.0",
     "next": "16.2.9",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "yahoo-finance2": "^3.15.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
