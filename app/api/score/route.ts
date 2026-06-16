@@ -51,8 +51,15 @@ export async function GET(req: NextRequest) {
 
   const meta = TICKERS[cacheKey] ?? { name: cacheKey, sector: "General" };
 
+  // Accept price data passed from client to avoid server-side API restrictions
+  const clientPrice = parseFloat(req.nextUrl.searchParams.get("price") ?? "0");
+  const clientChange = parseFloat(req.nextUrl.searchParams.get("change") ?? "0");
+  const clientChangePct = parseFloat(req.nextUrl.searchParams.get("changePct") ?? "0");
+
   try {
-    const q = await fetchQuote(ticker);
+    const q = clientPrice > 0
+      ? { price: clientPrice, change: clientChange, changePercent: clientChangePct, high52: 0, low52: 0, pe: null, eps: null, marketCap: null, volumeRatio: 1 }
+      : await fetchQuote(ticker);
 
     const priceVs52High = q.high52 > 0 ? q.price / q.high52 : 0.8;
 
