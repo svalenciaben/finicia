@@ -8,9 +8,9 @@ const TICKERS = [
   { ticker: "GOOGL", name: "Alphabet", sector: "Tecnología" },
   { ticker: "NVDA", name: "NVIDIA", sector: "Tecnología" },
   { ticker: "AMZN", name: "Amazon", sector: "Consumo" },
-  { ticker: "NEE", name: "NextEra Energy", sector: "Energía" },
+  { ticker: "TSLA", name: "Tesla", sector: "Automoción" },
   { ticker: "JNJ", name: "Johnson & Johnson", sector: "Salud" },
-  { ticker: "BRK-B", name: "Berkshire Hathaway", sector: "Finanzas" },
+  { ticker: "JPM", name: "JPMorgan Chase", sector: "Finanzas" },
 ];
 
 interface StockScore {

@@ -11,9 +11,9 @@ const TICKERS: Record<string, { name: string; sector: string }> = {
   GOOGL: { name: "Alphabet", sector: "Tecnología" },
   NVDA: { name: "NVIDIA", sector: "Tecnología" },
   AMZN: { name: "Amazon", sector: "Consumo" },
-  NEE: { name: "NextEra Energy", sector: "Energía" },
+  TSLA: { name: "Tesla", sector: "Automoción" },
   JNJ: { name: "Johnson & Johnson", sector: "Salud" },
-  "BRK-B": { name: "Berkshire Hathaway", sector: "Finanzas" },
+  JPM: { name: "JPMorgan Chase", sector: "Finanzas" },
 };
 
 async function fetchQuote(ticker: string) {
