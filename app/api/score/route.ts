@@ -43,7 +43,7 @@ async function fetchQuote(ticker: string) {
   }
 
   // FMP stable endpoint (new API, free tier 250 calls/day)
-  const fmpKey = process.env.FMP_API_KEY;
+  const fmpKey = process.env.FMP_API_KEY || "1IYFXrvJ16BB5Lsd0sQGwK3R1rBaGi5c";
   if (fmpKey) {
     const res = await fetch(
       `https://financialmodelingprep.com/stable/quote?symbol=${ticker}&apikey=${fmpKey}`,
