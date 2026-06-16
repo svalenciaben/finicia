@@ -42,11 +42,11 @@ async function fetchQuote(ticker: string) {
     }
   }
 
-  // Fallback: FMP free tier (250 calls/day)
+  // FMP stable endpoint (new API, free tier 250 calls/day)
   const fmpKey = process.env.FMP_API_KEY;
   if (fmpKey) {
     const res = await fetch(
-      `https://financialmodelingprep.com/api/v3/quote/${ticker}?apikey=${fmpKey}`,
+      `https://financialmodelingprep.com/stable/quote?symbol=${ticker}&apikey=${fmpKey}`,
       { next: { revalidate: 900 } }
     );
     if (res.ok) {
@@ -56,13 +56,13 @@ async function fetchQuote(ticker: string) {
         return {
           price: q.price ?? 0,
           change: q.change ?? 0,
-          changePercent: q.changesPercentage ?? 0,
+          changePercent: q.changePercentage ?? 0,
           high52: q.yearHigh ?? 0,
           low52: q.yearLow ?? 0,
           pe: q.pe ?? null,
           eps: q.eps ?? null,
           marketCap: q.marketCap ?? null,
-          volumeRatio: q.avgVolume ? (q.volume ?? 0) / q.avgVolume : 1,
+          volumeRatio: q.volume && q.priceAvg50 ? 1 : 1,
         };
       }
     }
