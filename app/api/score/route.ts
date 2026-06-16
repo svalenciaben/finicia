@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const cache = new Map<string, { data: unknown; expires: number }>();
 
@@ -60,47 +57,20 @@ export async function GET(req: NextRequest) {
       ? { price: clientPrice, change: clientChange, changePercent: clientChangePct, high52: 0, low52: 0, pe: null, eps: null, marketCap: null, volumeRatio: 1 }
       : await fetchQuote(ticker);
 
-    const priceVs52High = q.high52 > 0 ? q.price / q.high52 : 0.8;
-
-    const prompt = `Analiza esta acción para un inversor principiante.
-
-Empresa: ${meta.name} (${ticker})
-Sector: ${meta.sector}
-Precio actual: $${q.price.toFixed(2)}
-Cambio hoy: ${q.changePercent.toFixed(2)}%
-P/E ratio: ${q.pe ?? "N/A"}
-EPS: ${q.eps ?? "N/A"}
-Capitalización: $${q.marketCap ? (q.marketCap / 1e9).toFixed(1) + "B" : "N/A"}
-Volumen vs promedio: ${(q.volumeRatio * 100).toFixed(0)}%
-Precio vs máximo 52 semanas: ${(priceVs52High * 100).toFixed(0)}%
-
-Devuelve SOLO un JSON válido:
-{
-  "score": <número 0-10>,
-  "tecnico": <número 0-10>,
-  "fundamental": <número 0-10>,
-  "sentimiento": <número 0-10>,
-  "resumen": "<1 oración en español simple>",
-  "riesgo": "<bajo|medio|alto>"
-}
-
-- tecnico: momentum precio (cambio hoy, posición vs 52 semanas)
-- fundamental: P/E y EPS (sin datos = 5)
-- sentimiento: volumen relativo
-- score: promedio ponderado 40/40/20
-- sé conservador si hay pocas señales`;
-
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 300,
-      messages: [{ role: "user", content: prompt }],
-    });
-
-    const text = response.content[0].type === "text" ? response.content[0].text : "{}";
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    const analysis = jsonMatch
-      ? JSON.parse(jsonMatch[0])
-      : { score: 5, tecnico: 5, fundamental: 5, sentimiento: 5, resumen: "Análisis no disponible.", riesgo: "medio" };
+    // Score calculado matemáticamente sin IA
+    const changePct = q.changePercent;
+    const tecnico = Math.min(10, Math.max(0, 5 + changePct * 1.5));
+    const fundamental = 5; // sin datos de P/E disponibles en tier gratis
+    const sentimiento = changePct > 1 ? 7 : changePct > 0 ? 6 : changePct > -1 ? 4 : 3;
+    const score = Math.round((tecnico * 0.4 + fundamental * 0.4 + sentimiento * 0.2) * 10) / 10;
+    const riesgo: "bajo" | "medio" | "alto" = score >= 7 ? "bajo" : score >= 4 ? "medio" : "alto";
+    const resumen = changePct > 1
+      ? `${meta.name} muestra momentum positivo hoy con una subida del ${changePct.toFixed(2)}%.`
+      : changePct > 0
+      ? `${meta.name} sube ligeramente hoy un ${changePct.toFixed(2)}%, señal neutral.`
+      : changePct > -1
+      ? `${meta.name} baja un ${Math.abs(changePct).toFixed(2)}% hoy, señal de cautela.`
+      : `${meta.name} cae un ${Math.abs(changePct).toFixed(2)}% hoy, señal negativa.`;
 
     const result = {
       ticker: cacheKey,
@@ -109,7 +79,12 @@ Devuelve SOLO un JSON válido:
       price: q.price,
       change: q.change,
       changePercent: q.changePercent,
-      ...analysis,
+      score,
+      tecnico: Math.round(tecnico * 10) / 10,
+      fundamental,
+      sentimiento,
+      resumen,
+      riesgo,
     };
 
     cache.set(cacheKey, { data: result, expires: Date.now() + 4 * 60 * 60 * 1000 });
@@ -127,7 +102,7 @@ Devuelve SOLO un JSON válido:
       tecnico: 5,
       fundamental: 5,
       sentimiento: 5,
-      resumen: "No se pudo generar el análisis en este momento.",
+      resumen: "No se pudo cargar el análisis.",
       riesgo: "medio",
     });
   }
