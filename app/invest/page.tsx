@@ -43,26 +43,25 @@ export default function InvestPage() {
   const [input, setInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
 
-  const FMP_KEY = "1IYFXrvJ16BB5Lsd0sQGwK3R1rBaGi5c";
-
   const loadScores = async () => {
     setLoading(true);
     try {
       const results = await Promise.all(
         TICKERS.slice(0, 6).map(async (t) => {
-          // Fetch price from FMP directly from browser (no server restrictions)
+          // Fetch price from Yahoo Finance (works from browser)
           let price = 0, change = 0, changePercent = 0;
           try {
-            const fmpRes = await fetch(
-              `https://financialmodelingprep.com/stable/quote?symbol=${t.ticker}&apikey=${FMP_KEY}`
+            const yhRes = await fetch(
+              `https://query1.finance.yahoo.com/v8/finance/chart/${t.ticker}?interval=1d&range=1d`
             );
-            if (fmpRes.ok) {
-              const fmpData = await fmpRes.json();
-              const q = Array.isArray(fmpData) ? fmpData[0] : null;
-              if (q) {
-                price = q.price ?? 0;
-                change = q.change ?? 0;
-                changePercent = q.changePercentage ?? 0;
+            if (yhRes.ok) {
+              const yhData = await yhRes.json();
+              const meta = yhData?.chart?.result?.[0]?.meta;
+              if (meta) {
+                price = meta.regularMarketPrice ?? 0;
+                const prev = meta.chartPreviousClose ?? meta.previousClose ?? price;
+                change = price - prev;
+                changePercent = prev > 0 ? ((price - prev) / prev) * 100 : 0;
               }
             }
           } catch {}
