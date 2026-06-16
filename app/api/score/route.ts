@@ -5,24 +5,70 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const cache = new Map<string, { data: unknown; expires: number }>();
 
-async function fetchYahooFinance(ticker: string) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1mo`;
-  const res = await fetch(url, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; Finicia/1.0)" },
-    next: { revalidate: 900 },
-  });
-  if (!res.ok) throw new Error(`Yahoo Finance error: ${res.status}`);
-  return res.json();
-}
+const TICKERS: Record<string, { name: string; sector: string }> = {
+  AAPL: { name: "Apple", sector: "Tecnología" },
+  MSFT: { name: "Microsoft", sector: "Tecnología" },
+  GOOGL: { name: "Alphabet", sector: "Tecnología" },
+  NVDA: { name: "NVIDIA", sector: "Tecnología" },
+  AMZN: { name: "Amazon", sector: "Consumo" },
+  NEE: { name: "NextEra Energy", sector: "Energía" },
+  JNJ: { name: "Johnson & Johnson", sector: "Salud" },
+  "BRK-B": { name: "Berkshire Hathaway", sector: "Finanzas" },
+};
 
-async function fetchYahooQuote(ticker: string) {
-  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${ticker}`;
-  const res = await fetch(url, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; Finicia/1.0)" },
-    next: { revalidate: 900 },
-  });
-  if (!res.ok) throw new Error(`Yahoo Quote error: ${res.status}`);
-  return res.json();
+async function fetchQuote(ticker: string) {
+  // Finnhub — free tier, 60 calls/min, works from servers
+  const key = process.env.FINNHUB_API_KEY;
+  if (key) {
+    const res = await fetch(
+      `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${key}`,
+      { next: { revalidate: 900 } }
+    );
+    if (res.ok) {
+      const d = await res.json();
+      if (d.c && d.c > 0) {
+        return {
+          price: d.c,
+          change: d.d ?? 0,
+          changePercent: d.dp ?? 0,
+          high52: d.h ?? 0,
+          low52: d.l ?? 0,
+          pe: null,
+          eps: null,
+          marketCap: null,
+          volumeRatio: 1,
+        };
+      }
+    }
+  }
+
+  // Fallback: FMP free tier (250 calls/day)
+  const fmpKey = process.env.FMP_API_KEY;
+  if (fmpKey) {
+    const res = await fetch(
+      `https://financialmodelingprep.com/api/v3/quote/${ticker}?apikey=${fmpKey}`,
+      { next: { revalidate: 900 } }
+    );
+    if (res.ok) {
+      const d = await res.json();
+      const q = Array.isArray(d) ? d[0] : null;
+      if (q) {
+        return {
+          price: q.price ?? 0,
+          change: q.change ?? 0,
+          changePercent: q.changesPercentage ?? 0,
+          high52: q.yearHigh ?? 0,
+          low52: q.yearLow ?? 0,
+          pe: q.pe ?? null,
+          eps: q.eps ?? null,
+          marketCap: q.marketCap ?? null,
+          volumeRatio: q.avgVolume ? (q.volume ?? 0) / q.avgVolume : 1,
+        };
+      }
+    }
+  }
+
+  throw new Error("No data source available");
 }
 
 export async function GET(req: NextRequest) {
@@ -35,66 +81,40 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(cached.data);
   }
 
-  const TICKERS: Record<string, { name: string; sector: string }> = {
-    AAPL: { name: "Apple", sector: "Tecnología" },
-    MSFT: { name: "Microsoft", sector: "Tecnología" },
-    GOOGL: { name: "Alphabet", sector: "Tecnología" },
-    NVDA: { name: "NVIDIA", sector: "Tecnología" },
-    AMZN: { name: "Amazon", sector: "Consumo" },
-    NEE: { name: "NextEra Energy", sector: "Energía" },
-    JNJ: { name: "Johnson & Johnson", sector: "Salud" },
-    "BRK-B": { name: "Berkshire Hathaway", sector: "Finanzas" },
-  };
-
   const meta = TICKERS[cacheKey] ?? { name: cacheKey, sector: "General" };
 
   try {
-    const [quoteData] = await Promise.all([fetchYahooQuote(ticker)]);
+    const q = await fetchQuote(ticker);
 
-    const quote = quoteData?.quoteResponse?.result?.[0] ?? {};
-    const price = quote.regularMarketPrice ?? 0;
-    const change = quote.regularMarketChange ?? 0;
-    const changePercent = quote.regularMarketChangePercent ?? 0;
-    const pe = quote.trailingPE ?? null;
-    const eps = quote.epsTrailingTwelveMonths ?? null;
-    const marketCap = quote.marketCap ?? null;
-    const volume = quote.regularMarketVolume ?? null;
-    const avgVolume = quote.averageDailyVolume3Month ?? null;
-    const fiftyTwoHigh = quote.fiftyTwoWeekHigh ?? null;
-    const fiftyTwoLow = quote.fiftyTwoWeekLow ?? null;
-
-    const volumeRatio = avgVolume ? volume / avgVolume : 1;
-    const priceVs52High = fiftyTwoHigh ? price / fiftyTwoHigh : 0.8;
+    const priceVs52High = q.high52 > 0 ? q.price / q.high52 : 0.8;
 
     const prompt = `Analiza esta acción para un inversor principiante.
 
 Empresa: ${meta.name} (${ticker})
 Sector: ${meta.sector}
-Precio actual: $${price.toFixed(2)}
-Cambio hoy: ${changePercent.toFixed(2)}%
-P/E ratio: ${pe ?? "N/A"}
-EPS: ${eps ?? "N/A"}
-Capitalización: $${marketCap ? (marketCap / 1e9).toFixed(1) + "B" : "N/A"}
-Volumen vs promedio: ${(volumeRatio * 100).toFixed(0)}%
+Precio actual: $${q.price.toFixed(2)}
+Cambio hoy: ${q.changePercent.toFixed(2)}%
+P/E ratio: ${q.pe ?? "N/A"}
+EPS: ${q.eps ?? "N/A"}
+Capitalización: $${q.marketCap ? (q.marketCap / 1e9).toFixed(1) + "B" : "N/A"}
+Volumen vs promedio: ${(q.volumeRatio * 100).toFixed(0)}%
 Precio vs máximo 52 semanas: ${(priceVs52High * 100).toFixed(0)}%
 
-Devuelve SOLO un JSON válido con esta estructura exacta:
+Devuelve SOLO un JSON válido:
 {
-  "score": <número 0-10, una decimal>,
+  "score": <número 0-10>,
   "tecnico": <número 0-10>,
   "fundamental": <número 0-10>,
   "sentimiento": <número 0-10>,
-  "resumen": "<1 oración en español simple explicando la señal general>",
+  "resumen": "<1 oración en español simple>",
   "riesgo": "<bajo|medio|alto>"
 }
 
-Criterios:
-- tecnico: basado en momento del precio (cambio hoy, posición vs 52 semanas, volumen)
-- fundamental: basado en P/E y EPS (sin datos = 5 neutro)
-- sentimiento: basado en volumen relativo y momentum
-- score: promedio ponderado (40% tecnico, 40% fundamental, 20% sentimiento)
-- resumen: explica el score en lenguaje muy simple, sin jerga
-- sé conservador: si hay pocas señales positivas, el score no debe ser alto`;
+- tecnico: momentum precio (cambio hoy, posición vs 52 semanas)
+- fundamental: P/E y EPS (sin datos = 5)
+- sentimiento: volumen relativo
+- score: promedio ponderado 40/40/20
+- sé conservador si hay pocas señales`;
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
@@ -104,15 +124,17 @@ Criterios:
 
     const text = response.content[0].type === "text" ? response.content[0].text : "{}";
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    const analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : { score: 5, tecnico: 5, fundamental: 5, sentimiento: 5, resumen: "Análisis no disponible.", riesgo: "medio" };
+    const analysis = jsonMatch
+      ? JSON.parse(jsonMatch[0])
+      : { score: 5, tecnico: 5, fundamental: 5, sentimiento: 5, resumen: "Análisis no disponible.", riesgo: "medio" };
 
     const result = {
       ticker: cacheKey,
       name: meta.name,
       sector: meta.sector,
-      price,
-      change,
-      changePercent,
+      price: q.price,
+      change: q.change,
+      changePercent: q.changePercent,
       ...analysis,
     };
 
@@ -131,7 +153,7 @@ Criterios:
       tecnico: 5,
       fundamental: 5,
       sentimiento: 5,
-      resumen: "No se pudieron cargar los datos en este momento.",
+      resumen: "Agrega FINNHUB_API_KEY o FMP_API_KEY en Vercel para ver datos reales.",
       riesgo: "medio",
     });
   }
