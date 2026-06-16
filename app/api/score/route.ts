@@ -37,6 +37,8 @@ async function fetchQuote(ticker: string) {
   };
 }
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   const ticker = req.nextUrl.searchParams.get("ticker");
   if (!ticker) return NextResponse.json({ error: "ticker required" }, { status: 400 });
