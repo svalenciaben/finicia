@@ -71,151 +71,142 @@ interface Props {
   onComplete: () => void;
 }
 
+// Steps: 0=concept, 1=analogy, 2..2+quiz.length-1=quiz questions, last=done
 export default function LessonView({ lesson, completed, onComplete }: Props) {
+  const data = LESSONS_DATA[lesson.id] ?? DEFAULT_LESSON;
+  const STEP_CONCEPT = 0;
+  const STEP_ANALOGY = 1;
+  const STEP_QUIZ_START = 2;
+  const totalSteps = STEP_QUIZ_START + data.quiz.length;
+
+  const [step, setStep] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
   const [showXp, setShowXp] = useState(false);
 
-  const data = LESSONS_DATA[lesson.id] ?? DEFAULT_LESSON;
-  const quizDone = data.quiz.every((_, i) => quizAnswers[i] !== undefined);
+  const currentQuizIdx = step - STEP_QUIZ_START;
+  const isQuizStep = step >= STEP_QUIZ_START && step < totalSteps;
+  const isDone = step >= totalSteps;
+  const currentQ = isQuizStep ? data.quiz[currentQuizIdx] : null;
+  const currentAnswered = currentQ !== null && quizAnswers[currentQuizIdx] !== undefined;
 
-  const handleAnswer = (qi: number, ai: number) => {
-    if (quizAnswers[qi] !== undefined) return;
-    setQuizAnswers((prev) => ({ ...prev, [qi]: ai }));
-    if (qi === data.quiz.length - 1 && !completed) {
+  const handleAnswer = (ai: number) => {
+    if (quizAnswers[currentQuizIdx] !== undefined) return;
+    const isLast = currentQuizIdx === data.quiz.length - 1;
+    setQuizAnswers((prev) => ({ ...prev, [currentQuizIdx]: ai }));
+    if (isLast && !completed) {
       setTimeout(() => {
         setShowXp(true);
         setTimeout(() => setShowXp(false), 1500);
         onComplete();
-      }, 600);
+      }, 800);
     }
   };
+
+  const goNext = () => setStep((s) => s + 1);
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-10 pb-32 md:pb-10">
       {/* Header */}
       <div className="mb-10 relative">
-        <div
-          style={{
-            fontFamily: "'DM Serif Display', serif",
-            fontSize: 96,
-            color: "var(--accent-purple)",
-            opacity: 0.08,
-            position: "absolute",
-            top: -20,
-            left: -10,
-            lineHeight: 1,
-            userSelect: "none",
-          }}
-        >
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 96, color: "var(--accent-purple)", opacity: 0.08, position: "absolute", top: -20, left: -10, lineHeight: 1, userSelect: "none" }}>
           {String(lesson.id).padStart(2, "0")}
         </div>
         <div className="badge-purple mb-3 inline-block relative">Lección {lesson.id}</div>
-        <h1
-          style={{
-            fontFamily: "'DM Serif Display', serif",
-            fontSize: "clamp(26px, 4vw, 36px)",
-            lineHeight: 1.2,
-            color: "var(--text-primary)",
-            marginBottom: 10,
-            position: "relative",
-          }}
-        >
+        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(26px, 4vw, 36px)", lineHeight: 1.2, color: "var(--text-primary)", marginBottom: 10, position: "relative" }}>
           {lesson.title}
         </h1>
         <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
           {lesson.minutes} min de lectura · +50 XP al completar
         </p>
+        {/* Progress dots */}
+        <div className="flex gap-1.5 mt-4">
+          {Array.from({ length: totalSteps }).map((_, i) => (
+            <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: i <= step ? "var(--accent-purple)" : "var(--border)", transition: "background 0.3s" }} />
+          ))}
+        </div>
       </div>
 
-      {/* Bloque 1 — Explicación */}
-      <div className="mb-8">
-        {data.concept.split("\n\n").map((p, i) => (
-          <p key={i} style={{ fontSize: 17, lineHeight: 1.85, color: "var(--text-primary)", marginBottom: 16 }}>
-            {p}
+      {/* Step 0 — Explicación */}
+      {step === STEP_CONCEPT && (
+        <div className="animate-fade-in-up">
+          <div className="mb-8">
+            {data.concept.split("\n\n").map((p, i) => (
+              <p key={i} style={{ fontSize: 17, lineHeight: 1.85, color: "var(--text-primary)", marginBottom: 16 }}>{p}</p>
+            ))}
+          </div>
+          <button className="btn-primary" onClick={goNext}>
+            Entendido, siguiente <ChevronRight size={15} />
+          </button>
+        </div>
+      )}
+
+      {/* Step 1 — Analogía */}
+      {step === STEP_ANALOGY && (
+        <div className="animate-fade-in-up">
+          <div className="mb-8 p-5 rounded-xl" style={{ background: "rgba(108,99,255,0.08)", borderLeft: "3px solid var(--accent-purple)" }}>
+            <div className="flex items-center gap-2 mb-3">
+              <Lightbulb size={15} style={{ color: "var(--accent-purple)" }} />
+              <span style={{ fontSize: 11, fontWeight: 500, color: "var(--accent-purple)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Analogía simple</span>
+            </div>
+            <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 19, lineHeight: 1.6, color: "var(--text-primary)" }}>{data.analogy}</p>
+          </div>
+          <button className="btn-primary" onClick={goNext}>
+            Listo, ponme a prueba <ChevronRight size={15} />
+          </button>
+        </div>
+      )}
+
+      {/* Quiz steps */}
+      {isQuizStep && currentQ && (
+        <div className="animate-fade-in-up">
+          <p style={{ fontSize: 12, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>
+            Pregunta {currentQuizIdx + 1} de {data.quiz.length}
           </p>
-        ))}
-      </div>
-
-      {/* Bloque 2 — Analogía */}
-      <div
-        className="mb-8 p-5 rounded-xl"
-        style={{
-          background: "rgba(108,99,255,0.08)",
-          borderLeft: "3px solid var(--accent-purple)",
-        }}
-      >
-        <div className="flex items-center gap-2 mb-3">
-          <Lightbulb size={15} style={{ color: "var(--accent-purple)" }} />
-          <span style={{ fontSize: 11, fontWeight: 500, color: "var(--accent-purple)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Analogía simple
-          </span>
-        </div>
-        <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 19, lineHeight: 1.6, color: "var(--text-primary)" }}>
-          {data.analogy}
-        </p>
-      </div>
-
-      {/* Bloque 3 — Quiz */}
-      <div className="mb-8">
-        <p style={{ fontSize: 12, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>
-          Comprueba lo que aprendiste
-        </p>
-        <div className="flex flex-col gap-5">
-          {data.quiz.map((q, qi) => {
-            const answered = quizAnswers[qi] !== undefined;
-            const selectedIdx = quizAnswers[qi];
-            return (
-              <div key={qi} className="card p-5">
-                <p style={{ fontSize: 15, fontWeight: 500, color: "var(--text-primary)", marginBottom: 14, lineHeight: 1.5 }}>
-                  {q.q}
-                </p>
-                <div className="flex flex-col gap-2">
-                  {q.options.map((opt, ai) => {
-                    const isSelected = selectedIdx === ai;
-                    const isCorrect = ai === q.correct;
-                    let borderColor = "var(--border)";
-                    let bg = "transparent";
-                    let textColor = "var(--text-secondary)";
-                    if (answered && isSelected) {
-                      if (isCorrect) { borderColor = "var(--accent-green)"; bg = "rgba(0,200,150,0.08)"; textColor = "var(--accent-green)"; }
-                      else { borderColor = "var(--accent-red)"; bg = "rgba(255,77,106,0.08)"; textColor = "var(--accent-red)"; }
-                    }
-                    return (
-                      <button
-                        key={ai}
-                        onClick={() => handleAnswer(qi, ai)}
-                        disabled={answered}
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-left text-sm transition-all duration-200"
-                        style={{
-                          border: `1px solid ${borderColor}`,
-                          background: bg,
-                          color: textColor,
-                          cursor: answered ? "default" : "pointer",
-                        }}
-                      >
-                        {answered && isSelected && isCorrect && <CheckCircle size={15} style={{ color: "var(--accent-green)", flexShrink: 0 }} />}
-                        {answered && isSelected && !isCorrect && <XCircle size={15} style={{ color: "var(--accent-red)", flexShrink: 0 }} />}
-                        {!answered && <div style={{ width: 15, height: 15, borderRadius: "50%", border: "1px solid var(--border)", flexShrink: 0 }} />}
-                        {opt}
-                      </button>
-                    );
-                  })}
-                </div>
-                {answered && (
-                  <div className="mt-3 p-3 rounded-lg animate-fade-in-up" style={{ background: "var(--bg-surface)" }}>
-                    <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                      {q.explanation}
-                    </p>
-                  </div>
-                )}
+          <div className="card p-5 mb-4">
+            <p style={{ fontSize: 15, fontWeight: 500, color: "var(--text-primary)", marginBottom: 14, lineHeight: 1.5 }}>{currentQ.q}</p>
+            <div className="flex flex-col gap-2">
+              {currentQ.options.map((opt, ai) => {
+                const isSelected = quizAnswers[currentQuizIdx] === ai;
+                const isCorrect = ai === currentQ.correct;
+                let borderColor = "var(--border)";
+                let bg = "transparent";
+                let textColor = "var(--text-secondary)";
+                if (currentAnswered && isSelected) {
+                  if (isCorrect) { borderColor = "var(--accent-green)"; bg = "rgba(0,200,150,0.08)"; textColor = "var(--accent-green)"; }
+                  else { borderColor = "var(--accent-red)"; bg = "rgba(255,77,106,0.08)"; textColor = "var(--accent-red)"; }
+                }
+                return (
+                  <button
+                    key={ai}
+                    onClick={() => handleAnswer(ai)}
+                    disabled={currentAnswered}
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-left text-sm transition-all duration-200"
+                    style={{ border: `1px solid ${borderColor}`, background: bg, color: textColor, cursor: currentAnswered ? "default" : "pointer" }}
+                  >
+                    {currentAnswered && isSelected && isCorrect && <CheckCircle size={15} style={{ color: "var(--accent-green)", flexShrink: 0 }} />}
+                    {currentAnswered && isSelected && !isCorrect && <XCircle size={15} style={{ color: "var(--accent-red)", flexShrink: 0 }} />}
+                    {!currentAnswered && <div style={{ width: 15, height: 15, borderRadius: "50%", border: "1px solid var(--border)", flexShrink: 0 }} />}
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
+            {currentAnswered && (
+              <div className="mt-3 p-3 rounded-lg animate-fade-in-up" style={{ background: "var(--bg-surface)" }}>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>{currentQ.explanation}</p>
               </div>
-            );
-          })}
+            )}
+          </div>
+          {currentAnswered && currentQuizIdx < data.quiz.length - 1 && (
+            <button className="btn-primary animate-fade-in-up" onClick={goNext}>
+              Siguiente pregunta <ChevronRight size={15} />
+            </button>
+          )}
         </div>
-      </div>
+      )}
 
-      {/* Bloque 4 — Siguiente */}
-      {completed && (
+      {/* Completado */}
+      {(isDone || completed) && isDone && (
         <div className="card p-5 animate-fade-in-up relative overflow-hidden">
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle size={16} style={{ color: "var(--accent-green)" }} />
@@ -224,10 +215,7 @@ export default function LessonView({ lesson, completed, onComplete }: Props) {
           <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 16 }}>
             Continúa con la siguiente lección para seguir tu camino.
           </p>
-          <button
-            className="btn-primary"
-            onClick={onComplete}
-          >
+          <button className="btn-primary" onClick={onComplete}>
             Siguiente lección <ChevronRight size={15} />
           </button>
         </div>
