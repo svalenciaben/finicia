@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle, Lock, Circle, Star, Flame, ChevronRight } from "lucide-react";
 import LessonView from "@/components/LessonView";
 
@@ -36,8 +36,28 @@ const MODULES = [
 ];
 
 export default function LearnPage() {
-  const [completed, setCompleted] = useState<Set<number>>(new Set());
-  const [activeLesson, setActiveLesson] = useState<number | null>(1);
+  const [completed, setCompleted] = useState<Set<number>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try {
+      const saved = localStorage.getItem("finicia_completed");
+      return saved ? new Set<number>(JSON.parse(saved)) : new Set();
+    } catch { return new Set(); }
+  });
+  const [activeLesson, setActiveLesson] = useState<number | null>(() => {
+    if (typeof window === "undefined") return 1;
+    try {
+      const saved = localStorage.getItem("finicia_active");
+      return saved ? parseInt(saved) : 1;
+    } catch { return 1; }
+  });
+
+  useEffect(() => {
+    localStorage.setItem("finicia_completed", JSON.stringify([...completed]));
+  }, [completed]);
+
+  useEffect(() => {
+    if (activeLesson !== null) localStorage.setItem("finicia_active", String(activeLesson));
+  }, [activeLesson]);
   const totalXp = completed.size * 50;
   const streak = 1;
 
