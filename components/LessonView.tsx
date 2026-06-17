@@ -91,15 +91,7 @@ export default function LessonView({ lesson, completed, onComplete }: Props) {
 
   const handleAnswer = (ai: number) => {
     if (quizAnswers[currentQuizIdx] !== undefined) return;
-    const isLast = currentQuizIdx === data.quiz.length - 1;
     setQuizAnswers((prev) => ({ ...prev, [currentQuizIdx]: ai }));
-    if (isLast && !completed) {
-      setTimeout(() => {
-        setShowXp(true);
-        setTimeout(() => setShowXp(false), 1500);
-        onComplete();
-      }, 800);
-    }
   };
 
   const goNext = () => setStep((s) => s + 1);
@@ -197,16 +189,26 @@ export default function LessonView({ lesson, completed, onComplete }: Props) {
               </div>
             )}
           </div>
-          {currentAnswered && currentQuizIdx < data.quiz.length - 1 && (
-            <button className="btn-primary animate-fade-in-up" onClick={goNext}>
-              Siguiente pregunta <ChevronRight size={15} />
+          {currentAnswered && (
+            <button className="btn-primary animate-fade-in-up" onClick={() => {
+              const isLast = currentQuizIdx === data.quiz.length - 1;
+              if (isLast) {
+                if (!completed) {
+                  setShowXp(true);
+                  setTimeout(() => setShowXp(false), 1500);
+                  onComplete();
+                }
+              }
+              goNext();
+            }}>
+              {currentQuizIdx < data.quiz.length - 1 ? <>Siguiente pregunta <ChevronRight size={15} /></> : <>Ver resultado <ChevronRight size={15} /></>}
             </button>
           )}
         </div>
       )}
 
       {/* Completado */}
-      {(isDone || completed) && isDone && (
+      {isDone && (
         <div className="card p-5 animate-fade-in-up relative overflow-hidden">
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle size={16} style={{ color: "var(--accent-green)" }} />
