@@ -156,6 +156,7 @@ export default function LearnPage() {
       <div className="flex-1 overflow-y-auto">
         {activeLesson_ ? (
           <LessonView
+            key={activeLesson_!.id}
             lesson={activeLesson_}
             completed={completed.has(activeLesson_!.id)}
             onComplete={() => handleComplete(activeLesson_!.id)}
