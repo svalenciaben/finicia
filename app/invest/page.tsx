@@ -46,13 +46,9 @@ export default function InvestPage() {
   const loadScores = async () => {
     setLoading(true);
     try {
-      const results = await Promise.all(
-        TICKERS.slice(0, 6).map(async (t) => {
-          const res = await fetch(`/api/score?ticker=${t.ticker}`);
-          if (!res.ok) throw new Error();
-          return await res.json() as StockScore;
-        })
-      );
+      const res = await fetch("/api/scores");
+      if (!res.ok) throw new Error();
+      const results = await res.json() as StockScore[];
       setScores(results);
       if (!selected) setSelected(results[0] ?? null);
     } catch {
