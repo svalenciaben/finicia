@@ -11,48 +11,48 @@ const LESSONS_DATA: Record<number, {
     concept: "Cuando ahorras, tu dinero se queda quieto. Si hay inflación del 4% y tu banco te da 1%, estás perdiendo 3% de poder de compra cada año sin darte cuenta.\n\nInvertir es poner tu dinero a trabajar. En vez de que duerma en una cuenta, lo pones en empresas, fondos o activos que pueden crecer con la economía.\n\nNo se trata de hacerse rico rápido — se trata de que tu dinero no pierda valor mientras duermes.",
     analogy: "Imagina que tienes un árbol frutal. Ahorrar es cortar el árbol y guardar la madera. Invertir es regarlo, cuidarlo, y cada año te da más fruta sin que hagas nada extra.",
     quiz: [
-      { q: "Si la inflación es 5% y tu cuenta bancaria da 1%, ¿qué pasa con tu dinero?", options: ["Crece un 1%", "Pierde poder de compra", "Se mantiene igual"], correct: 1, explanation: "Pierdes 4% de poder de compra real. Tus billetes dicen lo mismo, pero compran menos." },
-      { q: "¿Cuál es el objetivo principal de invertir?", options: ["Hacerse rico en semanas", "Que tu dinero no pierda valor y crezca con el tiempo", "Guardar dinero en un lugar seguro"], correct: 1, explanation: "Invertir a largo plazo busca que tu dinero crezca más que la inflación." },
+      { q: "Si la inflación es 5% y tu cuenta bancaria da 1%, ¿qué pasa con tu dinero?", options: ["Se mantiene igual", "Crece un 1%", "Pierde poder de compra"], correct: 2, explanation: "Pierdes 4% de poder de compra real. Tus billetes dicen lo mismo, pero compran menos." },
+      { q: "¿Cuál es el objetivo principal de invertir?", options: ["Que tu dinero no pierda valor y crezca con el tiempo", "Hacerse rico en semanas", "Guardar dinero en un lugar seguro"], correct: 0, explanation: "Invertir a largo plazo busca que tu dinero crezca más que la inflación." },
     ],
   },
   2: {
     concept: "Una acción es una pequeña parte de una empresa. Cuando Apple tiene millones de acciones y tú compras una, eres dueño de una fracción minúscula de Apple.\n\nSi Apple gana más dinero, crece, lanza productos exitosos — el valor de tu parte sube. Si les va mal, baja. Eso es el riesgo y la oportunidad al mismo tiempo.\n\nLas acciones se compran y venden en bolsa (como el NYSE o NASDAQ) todos los días de lunes a viernes.",
     analogy: "Una empresa es como una pizza enorme cortada en millones de rebanadas (acciones). Si compras una rebanada y la pizza crece — porque la receta mejoró o abrieron más locales — tu rebanada también vale más.",
     quiz: [
-      { q: "¿Qué te convierte en dueño de una parte de una empresa?", options: ["Comprar sus productos", "Comprar sus acciones", "Trabajar ahí"], correct: 1, explanation: "Comprar acciones te da propiedad parcial real de la empresa." },
-      { q: "¿Dónde se compran y venden las acciones?", options: ["En el banco directamente", "En la bolsa de valores", "En la empresa misma"], correct: 1, explanation: "La bolsa (NYSE, NASDAQ, etc.) es el mercado donde se intercambian acciones." },
+      { q: "¿Qué te convierte en dueño de una parte de una empresa?", options: ["Trabajar ahí", "Comprar sus acciones", "Comprar sus productos"], correct: 1, explanation: "Comprar acciones te da propiedad parcial real de la empresa." },
+      { q: "¿Dónde se compran y venden las acciones?", options: ["En el banco directamente", "En la empresa misma", "En la bolsa de valores"], correct: 2, explanation: "La bolsa (NYSE, NASDAQ, etc.) es el mercado donde se intercambian acciones." },
     ],
   },
   3: {
     concept: "Un ETF (fondo cotizado en bolsa) es una canasta que contiene decenas o cientos de acciones a la vez. En vez de elegir una sola empresa, compras un poco de muchas.\n\nPor ejemplo, el ETF S&P 500 contiene las 500 empresas más grandes de EE.UU. Si el conjunto crece, tú ganas. Si una empresa fracasa, las otras 499 amortiguan el golpe.\n\nEs la forma más simple y efectiva de diversificar sin ser experto. Warren Buffett lo recomienda para la mayoría de inversores.",
     analogy: "Comprar acciones individuales es apostar por un jugador específico. Comprar un ETF es apostar por el equipo completo. Si el equipo gana, tú ganas — aunque algún jugador individual falle.",
     quiz: [
-      { q: "¿Qué contiene un ETF?", options: ["Una sola acción muy segura", "Una canasta de muchas acciones", "Solo bonos del gobierno"], correct: 1, explanation: "Un ETF te da exposición a muchas empresas al mismo tiempo con una sola compra." },
-      { q: "¿Por qué los ETF son buenos para principiantes?", options: ["Garantizan ganancias", "Diversifican el riesgo automáticamente", "No cobran comisiones"], correct: 1, explanation: "Al tener muchas empresas, el fracaso de una no destruye tu inversión." },
+      { q: "¿Qué contiene un ETF?", options: ["Una canasta de muchas acciones", "Una sola acción muy segura", "Solo bonos del gobierno"], correct: 0, explanation: "Un ETF te da exposición a muchas empresas al mismo tiempo con una sola compra." },
+      { q: "¿Por qué los ETF son buenos para principiantes?", options: ["No cobran comisiones", "Garantizan ganancias", "Diversifican el riesgo automáticamente"], correct: 2, explanation: "Al tener muchas empresas, el fracaso de una no destruye tu inversión." },
     ],
   },
   4: {
     concept: "El interés compuesto es ganar intereses sobre los intereses que ya ganaste. Al principio parece poco, pero con el tiempo se convierte en algo extraordinario.\n\nSi inviertes $1,000 al 7% anual: año 1 tienes $1,070. Año 2 el 7% es sobre $1,070, no sobre $1,000. Así sucesivamente. A los 30 años tienes $7,612 — sin hacer nada más.\n\nAlbert Einstein lo llamó 'la octava maravilla del mundo'. La clave es empezar temprano — cada año que esperas le cuesta más de lo que crees.",
     analogy: "Es como una bola de nieve cuesta abajo. Al principio es pequeña y lenta. Pero mientras más rueda, más nieve recoge, y más rápido crece. Los primeros metros son lentos; los últimos metros son explosivos.",
     quiz: [
-      { q: "$1,000 al 7% anual por 30 años se convierte aproximadamente en:", options: ["$3,100", "$7,600", "$2,100"], correct: 1, explanation: "El interés compuesto multiplica tu dinero de forma no lineal — crece más rápido cada año." },
-      { q: "¿Cuál es la variable más importante en el interés compuesto?", options: ["El porcentaje de retorno", "El tiempo que inviertes", "El banco que eliges"], correct: 1, explanation: "Empezar 10 años antes puede duplicar o triplicar el resultado final." },
+      { q: "$1,000 al 7% anual por 30 años se convierte aproximadamente en:", options: ["$2,100", "$7,600", "$3,100"], correct: 1, explanation: "El interés compuesto multiplica tu dinero de forma no lineal — crece más rápido cada año." },
+      { q: "¿Cuál es la variable más importante en el interés compuesto?", options: ["El banco que eliges", "El porcentaje de retorno", "El tiempo que inviertes"], correct: 2, explanation: "Empezar 10 años antes puede duplicar o triplicar el resultado final." },
     ],
   },
   5: {
     concept: "Riesgo en inversiones significa que el valor puede subir o bajar. No hay inversión sin riesgo — ni siquiera el efectivo bajo el colchón (ese tiene riesgo de inflación).\n\nLa clave es entender qué tipo de riesgo puedes tolerar emocionalmente. Si ver tu inversión caer 30% te haría venderlo todo en pánico, necesitas menos riesgo. Si puedes esperar, el tiempo suele compensar las caídas.\n\nDiversificar reduce el riesgo: no poner todo en una sola empresa o sector. Los ETF hacen esto automáticamente.",
     analogy: "El riesgo es como el clima. No puedes eliminarlo, pero puedes prepararte: paraguas (diversificación), ropa de abrigo (horizonte largo), y no salir en tormenta (no vender en pánico).",
     quiz: [
-      { q: "¿Cómo se reduce el riesgo en una cartera?", options: ["Comprando solo acciones 'seguras'", "Diversificando entre diferentes activos", "Invirtiendo solo en bonos"], correct: 1, explanation: "La diversificación es la única forma probada de reducir riesgo sin sacrificar demasiado retorno." },
-      { q: "¿Qué es el riesgo de la inflación?", options: ["Que las acciones bajen", "Que tu dinero pierda poder de compra", "Que el banco quiebre"], correct: 1, explanation: "Incluso sin invertir, tu dinero corre el riesgo de valer menos cada año por la inflación." },
+      { q: "¿Cómo se reduce el riesgo en una cartera?", options: ["Invirtiendo solo en bonos", "Diversificando entre diferentes activos", "Comprando solo acciones 'seguras'"], correct: 1, explanation: "La diversificación es la única forma probada de reducir riesgo sin sacrificar demasiado retorno." },
+      { q: "¿Qué es el riesgo de la inflación?", options: ["Que tu dinero pierda poder de compra", "Que el banco quiebre", "Que las acciones bajen"], correct: 0, explanation: "Incluso sin invertir, tu dinero corre el riesgo de valer menos cada año por la inflación." },
     ],
   },
   6: {
     concept: "Un portafolio en papel es una cartera simulada donde practicas sin usar dinero real. Es la mejor forma de aprender sin arriesgar nada.\n\nEliges empresas o ETF, registras cuánto 'comprarías' y cuándo, y sigues cómo evoluciona. Aprenderás a manejar emociones cuando baje, a analizar antes de comprar, y a evaluar decisiones.\n\nEn Finicia puedes hacer esto en la sección Invertir. Una vez que te sientas cómodo, puedes pasar al dinero real con un broker como Interactive Brokers, eToro o Degiro.",
     analogy: "Es como el simulador de vuelo que usan los pilotos antes de volar aviones reales. Practican emergencias, aterrizajes difíciles, todo — sin riesgo. Tú practicas inversiones sin riesgo antes de usar dinero real.",
     quiz: [
-      { q: "¿Cuál es el propósito principal de un portafolio en papel?", options: ["Ganar dinero real", "Practicar sin riesgo y aprender", "Demostrarle a otros tus habilidades"], correct: 1, explanation: "El paper trading te permite cometer errores y aprender de ellos sin consecuencias financieras." },
-      { q: "Después de practicar en papel, ¿cuál sería un buen próximo paso?", options: ["Invertir todo tu ahorro de una vez", "Empezar con una cantidad pequeña que puedas perder sin problema", "Esperar 5 años más"], correct: 1, explanation: "Empezar con poco dinero real te da experiencia real con riesgo controlado." },
+      { q: "¿Cuál es el propósito principal de un portafolio en papel?", options: ["Ganar dinero real", "Demostrarle a otros tus habilidades", "Practicar sin riesgo y aprender"], correct: 2, explanation: "El paper trading te permite cometer errores y aprender de ellos sin consecuencias financieras." },
+      { q: "Después de practicar en papel, ¿cuál sería un buen próximo paso?", options: ["Esperar 5 años más", "Empezar con una cantidad pequeña que puedas perder sin problema", "Invertir todo tu ahorro de una vez"], correct: 1, explanation: "Empezar con poco dinero real te da experiencia real con riesgo controlado." },
     ],
   },
 };
