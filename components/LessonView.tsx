@@ -176,9 +176,9 @@ export default function LessonView({ lesson, completed, onComplete }: Props) {
                     let borderColor = "var(--border)";
                     let bg = "transparent";
                     let textColor = "var(--text-secondary)";
-                    if (answered) {
+                    if (answered && isSelected) {
                       if (isCorrect) { borderColor = "var(--accent-green)"; bg = "rgba(0,200,150,0.08)"; textColor = "var(--accent-green)"; }
-                      else if (isSelected) { borderColor = "var(--accent-red)"; bg = "rgba(255,77,106,0.08)"; textColor = "var(--accent-red)"; }
+                      else { borderColor = "var(--accent-red)"; bg = "rgba(255,77,106,0.08)"; textColor = "var(--accent-red)"; }
                     }
                     return (
                       <button
@@ -193,7 +193,7 @@ export default function LessonView({ lesson, completed, onComplete }: Props) {
                           cursor: answered ? "default" : "pointer",
                         }}
                       >
-                        {answered && isCorrect && <CheckCircle size={15} style={{ color: "var(--accent-green)", flexShrink: 0 }} />}
+                        {answered && isSelected && isCorrect && <CheckCircle size={15} style={{ color: "var(--accent-green)", flexShrink: 0 }} />}
                         {answered && isSelected && !isCorrect && <XCircle size={15} style={{ color: "var(--accent-red)", flexShrink: 0 }} />}
                         {!answered && <div style={{ width: 15, height: 15, borderRadius: "50%", border: "1px solid var(--border)", flexShrink: 0 }} />}
                         {opt}
